@@ -1,0 +1,14 @@
+options:
+pages:
+  Google:
+    url: https://www.google.com/
+  Slashdot:
+    url: https://slashdot.org/
+  Sensu:
+    url: http://mysensuserver.mydomain:3000/
+    login:
+      url: http://mysensuserver.mydomain:3000/
+      username_element: user
+      password_element: pass
+      username: adminuser
+      password: adminpassword
