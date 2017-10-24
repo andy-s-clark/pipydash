@@ -4,8 +4,8 @@ import logging
 
 import yaml
 from selenium import webdriver
-import selenium.webdriver.support.ui as ui
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support.ui import WebDriverWait
 
 logging.basicConfig(level=logging.INFO)
 
@@ -53,7 +53,7 @@ class PiPyDash:
         driver.get(options['url'])
         if 'login' in options:
             try:
-                element = ui.WebDriverWait(driver, 15).until(lambda driver: driver.find_element_by_name(options['login']['username_element']))
+                element = WebDriverWait(driver, 15).until(lambda driver: driver.find_element_by_name(options['login']['username_element']))
                 element.clear()
                 element.send_keys(options['login']['username'])
                 element = driver.find_element_by_name(options['login']['password_element'])
