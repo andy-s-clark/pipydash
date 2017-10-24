@@ -12,7 +12,7 @@ logging.basicConfig(level=logging.INFO)
 class PiPyDash:
     def __init__(self):
         self.set_config({})
-        self._browser = None
+        self._driver = None
 
     def set_config(self, config):
         self.__config = config
@@ -36,47 +36,56 @@ class PiPyDash:
         return profile
 
     def _load_pages(self):
+        driver = self._driver
         try:
             for name, options in self.get_config()['pages'].items():
                 self._load_page(name, options)
         except KeyError:
             logging.error('config is missing pages')
-        self._browser.close()
+        driver.switch_to.window(driver.window_handles[0])
+        driver.close()
 
     def _load_page(self, name, options):
+        driver = self._driver
         logging.info('Loading %s' % name)
-        browser = self._browser
+        driver.execute_script('window.open("about:blank", "%s");' % name)
+        driver.switch_to.window(driver.window_handles[-1])
+        driver.get(options['url'])
         if 'login' in options:
             try:
-                browser.get(options['login']['url'])
-                element = ui.WebDriverWait(browser, 15).until(lambda browser: browser.find_element_by_name(options['login']['username_element']))
+                element = ui.WebDriverWait(driver, 15).until(lambda driver: driver.find_element_by_name(options['login']['username_element']))
                 element.clear()
                 element.send_keys(options['login']['username'])
-                element = browser.find_element_by_name(options['login']['password_element'])
+                element = driver.find_element_by_name(options['login']['password_element'])
                 element.clear()
                 element.send_keys(options['login']['password'])
                 element.send_keys(Keys.RETURN)
-                time.sleep(5)
-                browser.execute_script('window.open("%s", "%s");' % (options['url'], name))
             except KeyError:
                 logging.error('%s is missing a login information' % name)
             print(options['login'])
         else:
-            browser.execute_script('window.open("%s", "%s");' % (options['url'], name))
+            # driver.execute_script('window.open("%s", "%s");' % (options['url'], name))
+            print(driver.window_handles)
 
     def _cycle_windows(self):
         try:
             delay = self.get_config()['options']['delay']
         except KeyError:
-            delay = 20
-        # windows = self._browser.window_handles()
-        # print(windows)
-        time.sleep(5)
+            delay = 10
+        driver = self._driver
+        for handle in driver.window_handles:
+            time.sleep(2)
+            driver.switch_to.window(handle)
+            driver.execute_script('window.focus();');
+            driver.find_element_by_xpath('/html/body').send_keys(Keys.F11)
+            driver.maximize_window()
+
+        time.sleep(delay)
 
     def main(self):
         logging.debug(self.__config)
         profile = self.get_firefox_profile()
-        self._browser = webdriver.Firefox(profile)
+        self._driver = webdriver.Firefox(profile)
         self._load_pages()
         self._cycle_windows()
-        self._browser.quit()
+        self._driver.quit()
