@@ -1,4 +1,3 @@
-from os import environ
 import time
 import logging
 from selenium import webdriver
@@ -10,21 +9,21 @@ import Xlib.X
 import Xlib.XK
 import yaml
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 
 
 class PiPyDash:
     def __init__(self):
-        self.set_config({})
+        self._config = {}
         self._driver = None
         self._display = Display()
         self._root = self._display.screen().root
 
     def set_config(self, config):
-        self.__config = config
+        self._config = config
 
     def get_config(self):
-        return self.__config
+        return self._config
 
     def get_display(self):
         return self._display
@@ -121,28 +120,34 @@ class PiPyDash:
         )
         display.send_event(window, event, propagate=True)
 
+    def _prepare_windows(self):
+        display = self.get_display()
+        windows = self._get_windows_by_class_info([self.get_root()], ('Navigator', 'Firefox'))
+        # Prepare windows
+        for window in windows:
+            self._send_key_to_window(window, "a")  # F11 Fullscreen doesn't seem to cycle
+            display.sync()
+
     def _cycle_windows(self):
+        display = self.get_display()
+        windows = self._get_windows_by_class_info([self.get_root()], ('Navigator', 'Firefox'))
         try:
             delay = self.get_config()['options']['delay']
         except KeyError:
             delay = 10
-        display = self.get_display()
-        windows = self._get_windows_by_class_info([self.get_root()], ('Navigator', 'Firefox'))
-        for window in windows:
-            self._send_key_to_window(window, "a")  # F11 Fullscreen doesn't seem to cycle
-            display.sync()
         for count in range(0, 3):  # Temporary for debugging
             for window in windows:
-                print("%d: %s" % (count, window.get_wm_name()))
+                logging.debug("%d: %s" % (count, window.get_wm_name()))
                 window.raise_window()
                 display.sync()
                 time.sleep(delay)
         display.close()
 
     def main(self):
-        logging.debug(self.__config)
+        logging.debug(self._config)
         profile = self.get_firefox_profile()
         self._driver = webdriver.Firefox(profile)
         self._load_pages()
+        self._prepare_windows()
         self._cycle_windows()
         self._driver.quit()
