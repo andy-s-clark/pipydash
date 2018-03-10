@@ -6,3 +6,4 @@ env/
 *.ipr
 *.iws
 config.yaml
+geckodriver.log
