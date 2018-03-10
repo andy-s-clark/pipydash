@@ -9,6 +9,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 logging.basicConfig(level=logging.INFO)
 
+
 class PiPyDash:
     def __init__(self):
         self.set_config({})
@@ -62,10 +63,9 @@ class PiPyDash:
                 element.send_keys(Keys.RETURN)
             except KeyError:
                 logging.error('%s is missing a login information' % name)
-            print(options['login'])
         else:
-            # driver.execute_script('window.open("%s", "%s");' % (options['url'], name))
-            print(driver.window_handles)
+            driver.execute_script('window.open("%s", "%s");' % (options['url'], name))
+            # print(driver.window_handles)
 
     def _cycle_windows(self):
         try:
@@ -76,7 +76,7 @@ class PiPyDash:
         for handle in driver.window_handles:
             time.sleep(2)
             driver.switch_to.window(handle)
-            driver.execute_script('window.focus();');
+            driver.execute_script('window.focus();')
             driver.find_element_by_xpath('/html/body').send_keys(Keys.F11)
             driver.maximize_window()
 
